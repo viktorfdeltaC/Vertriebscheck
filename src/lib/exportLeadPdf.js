@@ -91,17 +91,53 @@ function spacedText(doc, text, x, y, opts = {}) {
   doc.text(text, x, y, { ...opts, charSpace: opts.charSpace ?? 0.4 });
 }
 
+const LOGO_URL = '/assets/Wertentwickler%20logo1.png';
+
+async function loadLogo() {
+  try {
+    const res = await fetch(LOGO_URL);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const dataUrl = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+    const dims = await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+      img.onerror = () => resolve({ w: 1, h: 1 });
+      img.src = dataUrl;
+    });
+    return { dataUrl, ratio: dims.w / dims.h };
+  } catch {
+    return null;
+  }
+}
+
+function drawLogo(doc, logo, x, y, height, align = 'left') {
+  if (!logo) return 0;
+  const w = height * logo.ratio;
+  const drawX = align === 'right' ? x - w : align === 'center' ? x - w / 2 : x;
+  doc.addImage(logo.dataUrl, 'PNG', drawX, y, w, height);
+  return w;
+}
+
 // ========== PAGE 1 — Cover ==========
-function drawCover(doc, lead, qualification, advisorName) {
+function drawCover(doc, lead, qualification, advisorName, logo) {
   // Full navy background
   setFill(doc, NAVY_DARK);
   doc.rect(0, 0, PAGE_W, PAGE_H, 'F');
 
-  // Top eyebrow
+  // Logo centered, y=20mm, h=18mm
+  if (logo) drawLogo(doc, logo, PAGE_W / 2, 20, 18, 'center');
+
+  // Top eyebrow (logo occupies y=20..38, eyebrow at y=46)
   setText(doc, W50_ON_NAVY);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
-  spacedText(doc, 'UNTERLAGEN-CHECK', M_LEFT, 40, { charSpace: 1.2 });
+  spacedText(doc, 'UNTERLAGEN-CHECK', M_LEFT, 46, { charSpace: 1.2 });
 
   // Title
   setText(doc, WHITE);
@@ -222,18 +258,16 @@ function drawCover(doc, lead, qualification, advisorName) {
 }
 
 // ========== Header bar (pages 2+3) ==========
-function drawTopBar(doc, title, pageNum, totalPages) {
+function drawTopBar(doc, title, pageNum, totalPages, logo) {
   setFill(doc, NAVY_DARK);
   doc.rect(0, 0, PAGE_W, 14, 'F');
   setText(doc, WHITE);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.text(title, M_LEFT, 9);
-  setText(doc, W50_ON_NAVY);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text('Wertentwickler', PAGE_W - M_RIGHT, 9, { align: 'right' });
+  if (logo) drawLogo(doc, logo, PAGE_W - M_RIGHT, 3, 8, 'right');
   setText(doc, W40_ON_NAVY);
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.text(`${pageNum} / ${totalPages}`, PAGE_W - M_RIGHT, 14, { align: 'right' });
 }
@@ -271,8 +305,8 @@ function sectionHeading(doc, ctx, title, subtitle) {
 }
 
 // ========== PAGE 2 — Kundenqualifikation ==========
-function drawQualificationPage(doc, lead, qualification, totalPages, generatedAt) {
-  drawTopBar(doc, 'Kundenqualifikation', 2, totalPages);
+function drawQualificationPage(doc, lead, qualification, totalPages, generatedAt, logo) {
+  drawTopBar(doc, 'Kundenqualifikation', 2, totalPages, logo);
 
   const ctx = { doc, y: 22 };
 
@@ -404,8 +438,8 @@ function drawQualificationPage(doc, lead, qualification, totalPages, generatedAt
 }
 
 // ========== PAGE 3 — Unterlagen-Status ==========
-function drawDocumentsPage(doc, lead, sections, items, leadItems, totalPages, generatedAt) {
-  drawTopBar(doc, 'Unterlagen-Status', 3, totalPages);
+function drawDocumentsPage(doc, lead, sections, items, leadItems, totalPages, generatedAt, logo) {
+  drawTopBar(doc, 'Unterlagen-Status', 3, totalPages, logo);
   const ctx = { doc, y: 22 };
 
   const total = leadItems.length;
@@ -447,7 +481,7 @@ function drawDocumentsPage(doc, lead, sections, items, leadItems, totalPages, ge
   function ensureSpace(needed) {
     if (ctx.y + needed > FOOTER_LIMIT) {
       doc.addPage();
-      drawTopBar(doc, 'Unterlagen-Status', doc.getNumberOfPages(), totalPages);
+      drawTopBar(doc, 'Unterlagen-Status', doc.getNumberOfPages(), totalPages, logo);
       ctx.y = 22;
     }
   }
@@ -592,21 +626,22 @@ function drawDocumentsPage(doc, lead, sections, items, leadItems, totalPages, ge
   doc.text(wrapped, M_LEFT + 4, dY + 5);
 }
 
-export function exportLeadPdf({ lead, sections, items, leadItems, qualification, advisorName }) {
+export async function exportLeadPdf({ lead, sections, items, leadItems, qualification, advisorName }) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   const generatedAt = new Date();
   const totalPages = 3;
+  const logo = await loadLogo();
 
   // Page 1 — Cover
-  drawCover(doc, lead, qualification, advisorName);
+  drawCover(doc, lead, qualification, advisorName, logo);
 
   // Page 2 — Qualifikation
   doc.addPage();
-  drawQualificationPage(doc, lead, qualification, totalPages, generatedAt);
+  drawQualificationPage(doc, lead, qualification, totalPages, generatedAt, logo);
 
   // Page 3 — Unterlagen-Status
   doc.addPage();
-  drawDocumentsPage(doc, lead, sections, items, leadItems, totalPages, generatedAt);
+  drawDocumentsPage(doc, lead, sections, items, leadItems, totalPages, generatedAt, logo);
 
   // Footers (pages 2+, never page 1)
   const pageCount = doc.getNumberOfPages();

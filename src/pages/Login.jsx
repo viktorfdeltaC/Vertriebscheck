@@ -36,9 +36,13 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-wert-bg">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+        <div className="flex flex-col items-center mb-6">
+          <img
+            src="/assets/Wertentwickler%20logo1.png"
+            alt="Wertentwickler"
+            style={{ height: '120px', width: 'auto', display: 'block', marginBottom: '28px' }}
+          />
           <div className="font-bold tracking-wide text-wert-navy text-lg">UNTERLAGEN-CHECK</div>
-          <div className="text-xs text-slate-400 mt-1">Wertentwickler</div>
         </div>
         <form onSubmit={onSubmit} className="card p-6 space-y-4">
           <h1 className="text-xl font-semibold text-wert-navy">Anmelden</h1>

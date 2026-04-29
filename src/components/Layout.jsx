@@ -25,16 +25,20 @@ export default function Layout({ children }) {
         className="sticky top-0 z-20 bg-white"
         style={{ borderBottom: '1px solid #E5E7EB' }}
       >
-        <div className="max-w-6xl mx-auto px-5 sm:px-6 h-[52px] flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2.5">
+        <div className="max-w-6xl mx-auto px-5 sm:px-6 h-[96px] flex items-center justify-between">
+          <Link to="/dashboard" className="flex items-center gap-4">
+            <img
+              src="/assets/Wertentwickler%20logo1.png"
+              alt="Wertentwickler"
+              style={{ height: '72px', width: 'auto', display: 'block' }}
+            />
+            <span style={{ color: '#D1D5DB', fontSize: '15px' }}>/</span>
             <span
               className="text-[#1D1D1F]"
               style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '-0.01em' }}
             >
               Unterlagen-Check
             </span>
-            <span style={{ color: '#D1D5DB', fontSize: '15px' }}>/</span>
-            <span style={{ color: '#6E6E73', fontSize: '13px' }}>Wertentwickler</span>
           </Link>
           <div className="flex items-center gap-4">
             {profile?.is_admin && (

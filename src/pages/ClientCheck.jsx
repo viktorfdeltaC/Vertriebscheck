@@ -108,14 +108,19 @@ export default function ClientCheck() {
         className="sticky top-0 z-20 bg-white"
         style={{ borderBottom: '1px solid #E5E7EB' }}
       >
-        <div className="max-w-3xl mx-auto px-5 sm:px-6 h-[52px] flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-5 sm:px-6 h-[96px] flex items-center gap-4">
+          <img
+            src="/assets/Wertentwickler%20logo1.png"
+            alt="Wertentwickler"
+            style={{ height: '72px', width: 'auto', display: 'block' }}
+          />
+          <span style={{ color: '#D1D5DB', fontSize: '15px' }}>/</span>
           <div
             className="text-[#1D1D1F]"
             style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '-0.01em' }}
           >
             Unterlagen-Check
           </div>
-          <div className="text-[#6E6E73]" style={{ fontSize: '13px' }}>Wertentwickler</div>
         </div>
       </header>
 

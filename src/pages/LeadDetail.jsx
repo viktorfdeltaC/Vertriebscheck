@@ -163,12 +163,12 @@ export default function LeadDetail() {
     }
   }
 
-  function handleExportPdf() {
+  async function handleExportPdf() {
     // TODO: replace mock data with real Supabase data when connected
     const qualification = IS_MOCK
       ? mock.getQualification(id)
       : null; // qualification is currently loaded by QualificationPanel only; for Supabase, fetch from `lead_qualifications`
-    exportLeadPdf({
+    await exportLeadPdf({
       lead,
       sections,
       items,
