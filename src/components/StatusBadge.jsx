@@ -2,14 +2,26 @@ export default function StatusBadge({ status }) {
   const isDone = status === 'vollständig';
   return (
     <span
-      className={
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ' +
-        (isDone
-          ? 'bg-emerald-100 text-emerald-700'
-          : 'bg-amber-100 text-amber-700')
-      }
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        borderRadius: '980px',
+        padding: '3px 10px',
+        fontSize: '11px',
+        fontWeight: 600,
+        background: isDone ? '#DCFCE7' : '#FEF3C7',
+        color: isDone ? '#166534' : '#92400E',
+      }}
     >
-      <span className={'h-1.5 w-1.5 rounded-full ' + (isDone ? 'bg-emerald-500' : 'bg-amber-500')} />
+      <span
+        style={{
+          width: '6px',
+          height: '6px',
+          borderRadius: '999px',
+          background: isDone ? '#22C55E' : '#F59E0B',
+        }}
+      />
       {isDone ? 'Vollständig' : 'Offen'}
     </span>
   );

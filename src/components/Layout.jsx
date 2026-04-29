@@ -1,6 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth.jsx';
 import { IS_MOCK } from '../lib/supabase.js';
+import NotificationBanner from './NotificationBanner.jsx';
+import BellMenu from './BellMenu.jsx';
 
 export default function Layout({ children }) {
   const { profile, signOut, signIn } = useAuth();
@@ -18,63 +20,88 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-wert-bg">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <span className="font-bold tracking-wide text-wert-navy">UNTERLAGEN-CHECK</span>
-            <span className="hidden sm:inline text-xs text-slate-400">/ Wertentwickler</span>
+    <div className="min-h-screen" style={{ background: '#F5F5F7', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+      <header
+        className="sticky top-0 z-20 bg-white"
+        style={{ borderBottom: '1px solid #E5E7EB' }}
+      >
+        <div className="max-w-6xl mx-auto px-5 sm:px-6 h-[52px] flex items-center justify-between">
+          <Link to="/dashboard" className="flex items-center gap-2.5">
+            <span
+              className="text-[#1D1D1F]"
+              style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '-0.01em' }}
+            >
+              Unterlagen-Check
+            </span>
+            <span style={{ color: '#D1D5DB', fontSize: '15px' }}>/</span>
+            <span style={{ color: '#6E6E73', fontSize: '13px' }}>Wertentwickler</span>
           </Link>
-          <div className="flex items-center gap-3">
-            {profile?.full_name && (
-              <span className="hidden sm:inline text-sm text-slate-600">{profile.full_name}</span>
-            )}
+          <div className="flex items-center gap-4">
             {profile?.is_admin && (
-              <span className="text-xs font-semibold uppercase tracking-wide rounded-md bg-wert-blue/10 text-wert-blue px-2 py-1">
-                Admin
+              <NavLink
+                to="/admin/users"
+                style={({ isActive }) => ({
+                  fontSize: '14px',
+                  color: isActive ? '#1D1D1F' : '#6E6E73',
+                  fontWeight: isActive ? 500 : 400,
+                  transitionDuration: '150ms',
+                })}
+                className="transition-colors hover:text-[#1D1D1F]"
+              >
+                Team
+              </NavLink>
+            )}
+            <BellMenu />
+            {profile?.full_name && (
+              <span className="hidden sm:inline" style={{ color: '#6E6E73', fontSize: '14px' }}>
+                {profile.full_name}
               </span>
             )}
             {IS_MOCK && profile?.is_admin && (
-              <div className="hidden sm:flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 p-0.5">
+              <div className="hidden sm:flex items-center gap-1 rounded-md p-0.5" style={{ background: '#FEF3C7', border: '1px solid #FDE68A' }}>
                 <button
                   onClick={() => switchRole('admin')}
-                  className={
-                    'text-xs px-2 py-1 rounded ' +
-                    (profile?.is_admin ? 'bg-amber-200 font-semibold text-amber-900' : 'text-amber-700 hover:bg-amber-100')
-                  }
+                  className="text-xs px-2 py-1 rounded font-medium"
+                  style={{ background: profile?.is_admin ? '#FCD34D' : 'transparent', color: '#92400E' }}
                   title="Als Admin einloggen (dieser Tab)"
                 >
                   Admin
                 </button>
                 <button
                   onClick={() => switchRole('rep')}
-                  className={
-                    'text-xs px-2 py-1 rounded ' +
-                    (!profile?.is_admin ? 'bg-amber-200 font-semibold text-amber-900' : 'text-amber-700 hover:bg-amber-100')
-                  }
+                  className="text-xs px-2 py-1 rounded font-medium"
+                  style={{ background: !profile?.is_admin ? '#FCD34D' : 'transparent', color: '#92400E' }}
                   title="Als Berater einloggen (dieser Tab)"
                 >
                   Berater
                 </button>
-                <span className="w-px h-4 bg-amber-200 mx-0.5" />
+                <span style={{ width: '1px', height: '14px', background: '#FDE68A', margin: '0 2px' }} />
                 <a
                   href="/dashboard?as=rep"
                   target="_blank"
                   rel="noopener"
-                  className="text-xs px-2 py-1 rounded text-amber-700 hover:bg-amber-100"
-                  title="Berater-Sicht in neuem Tab öffnen (Holger bleibt hier eingeloggt)"
+                  className="text-xs px-2 py-1 rounded"
+                  style={{ color: '#92400E' }}
+                  title="Berater-Sicht in neuem Tab öffnen"
                 >
                   ↗ Berater-Tab
                 </a>
               </div>
             )}
-            <button onClick={handleLogout} className="btn-ghost">
+            <button
+              onClick={handleLogout}
+              className="transition-colors"
+              style={{ color: '#6E6E73', fontSize: '14px', transitionDuration: '150ms' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#1D1D1F')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#6E6E73')}
+            >
               Abmelden
             </button>
           </div>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">{children}</main>
+      <NotificationBanner />
+      <main className="max-w-6xl mx-auto px-5 sm:px-6 py-10">{children}</main>
     </div>
   );
 }

@@ -27,7 +27,7 @@ function uuid() {
   return crypto.randomUUID();
 }
 
-function mkLeadItems(leadId, presetChecked = []) {
+function mkLeadItems(leadId, presetChecked = [], advisorNotes = {}) {
   return ITEMS.map((it) => ({
     id: uuid(),
     lead_id: leadId,
@@ -35,6 +35,7 @@ function mkLeadItems(leadId, presetChecked = []) {
     checked: presetChecked.includes(it.id),
     note: null,
     file_path: null,
+    advisor_note: advisorNotes[it.id] ?? null,
     updated_at: new Date().toISOString(),
   }));
 }
@@ -44,7 +45,7 @@ const REPS = {
   'rep-2': { id: 'rep-2', full_name: 'Lisa Berater', is_admin: false, email: 'lisa@wertentwickler.de' },
 };
 
-const STORAGE_KEY = 'unterlagen-check-mock-v2';
+const STORAGE_KEY = 'unterlagen-check-mock-v4';
 
 // Feste UUIDs für die Demo-Leads, damit der Share-Link in jedem Browser identisch ist.
 const DEMO_LEAD_1 = '11111111-1111-4111-8111-111111111111';
@@ -66,6 +67,7 @@ function seedInitial() {
         share_uuid: DEMO_SHARE_1,
         status: 'offen',
         submitted_at: null,
+        deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString().slice(0, 10),
         created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
       },
       {
@@ -77,6 +79,7 @@ function seedInitial() {
         share_uuid: DEMO_SHARE_2,
         status: 'vollständig',
         submitted_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+        deadline: null,
         created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
       },
       {
@@ -88,13 +91,20 @@ function seedInitial() {
         share_uuid: DEMO_SHARE_3,
         status: 'offen',
         submitted_at: null,
+        deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString().slice(0, 10),
         created_at: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
       },
     ],
     leadItems: [
-      ...mkLeadItems(DEMO_LEAD_1, [101, 102, 103]),
+      ...mkLeadItems(DEMO_LEAD_1, [101, 102, 103], {
+        101: 'Bitte Vorder- und Rückseite separat einscannen und als eine Datei hochladen.',
+      }),
       ...mkLeadItems(DEMO_LEAD_2, ITEMS.map((i) => i.id)),
       ...mkLeadItems(DEMO_LEAD_3, [101]),
+    ],
+    users: [
+      { id: 'rep-1', full_name: 'Holger Weller', email: 'holger.weller@wertentwickler.de', is_admin: true, created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString() },
+      { id: 'rep-2', full_name: 'Lisa Berater', email: 'lisa@wertentwickler.de', is_admin: false, created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString() },
     ],
   };
 }
@@ -166,7 +176,7 @@ export const mock = {
     return ITEMS;
   },
 
-  createLead({ name, email, phone }) {
+  createLead({ name, email, phone, deadline }) {
     const store = loadStore();
     const newLead = {
       id: uuid(),
@@ -177,12 +187,30 @@ export const mock = {
       share_uuid: uuid(),
       status: 'offen',
       submitted_at: null,
+      deadline: deadline || null,
       created_at: new Date().toISOString(),
     };
     store.leads.push(newLead);
     store.leadItems.push(...mkLeadItems(newLead.id));
     saveStore(store);
     return newLead;
+  },
+
+  setLeadDeadline(id, deadline) {
+    const store = loadStore();
+    const lead = store.leads.find((l) => l.id === id);
+    if (!lead) return;
+    lead.deadline = deadline || null;
+    saveStore(store);
+  },
+
+  setAdvisorNote(leadId, itemId, note) {
+    const store = loadStore();
+    const li = store.leadItems.find((x) => x.lead_id === leadId && x.item_id === itemId);
+    if (!li) return;
+    li.advisor_note = note && note.trim() ? note : null;
+    li.updated_at = new Date().toISOString();
+    saveStore(store);
   },
 
   getQualification(leadId) {
@@ -278,6 +306,43 @@ export const mock = {
       lead.submitted_at = null;
       saveStore(store);
     }
+  },
+
+  listUsers() {
+    const store = loadStore();
+    const users = store.users ?? [];
+    return users.map((u) => ({
+      ...u,
+      lead_count: store.leads.filter((l) => l.created_by === u.id).length,
+    }));
+  },
+
+  inviteUser({ full_name, email }) {
+    const store = loadStore();
+    if (!store.users) store.users = [];
+    if (store.users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
+      throw new Error('Diese E-Mail ist bereits registriert.');
+    }
+    const newUser = {
+      id: uuid(),
+      full_name,
+      email,
+      is_admin: false,
+      created_at: new Date().toISOString(),
+    };
+    store.users.push(newUser);
+    saveStore(store);
+    // TODO: connect to Edge Function `invite-user` for real Supabase invite email.
+    // eslint-disable-next-line no-console
+    console.log('[mock-invite]', { email, full_name });
+    return newUser;
+  },
+
+  removeUser(id) {
+    const store = loadStore();
+    if (!store.users) store.users = [];
+    store.users = store.users.filter((u) => u.id !== id);
+    saveStore(store);
   },
 
   submitByShare(share) {

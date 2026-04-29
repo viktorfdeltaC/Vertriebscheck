@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard.jsx';
 import NewLead from './pages/NewLead.jsx';
 import LeadDetail from './pages/LeadDetail.jsx';
 import ClientCheck from './pages/ClientCheck.jsx';
+import AdminUsers from './pages/AdminUsers.jsx';
+import AdminRoute from './components/AdminRoute.jsx';
 
 export default function App() {
   return (
@@ -25,6 +27,10 @@ export default function App() {
         <Route
           path="/leads/:id"
           element={<ProtectedRoute><LeadDetail /></ProtectedRoute>}
+        />
+        <Route
+          path="/admin/users"
+          element={<AdminRoute><AdminUsers /></AdminRoute>}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

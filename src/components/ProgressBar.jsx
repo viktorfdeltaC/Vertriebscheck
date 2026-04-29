@@ -3,15 +3,22 @@ export default function ProgressBar({ value, total, showLabel = true }) {
   return (
     <div className="w-full">
       {showLabel && (
-        <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
+        <div className="flex items-center justify-between mb-2" style={{ fontSize: '13px', color: '#6E6E73' }}>
           <span>{value} von {total} Unterlagen</span>
-          <span className="font-semibold text-wert-navy">{pct}%</span>
+          <span style={{ fontWeight: 600, color: '#1D1D1F' }}>{pct}%</span>
         </div>
       )}
-      <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+      <div
+        className="w-full overflow-hidden"
+        style={{ height: '6px', borderRadius: '999px', background: '#F3F4F6' }}
+      >
         <div
-          className="h-full bg-wert-blue transition-all"
-          style={{ width: `${pct}%` }}
+          className="h-full transition-all"
+          style={{
+            width: `${pct}%`,
+            background: 'linear-gradient(90deg, #1B2A4A, #2563EB)',
+            transitionDuration: '300ms',
+          }}
         />
       </div>
     </div>
