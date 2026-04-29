@@ -10,6 +10,7 @@ import Icon from '../components/Icon.jsx';
 import { supabase, IS_MOCK } from '../lib/supabase.js';
 import { mock } from '../lib/mock.js';
 import { useAuth } from '../lib/auth.jsx';
+import { exportLeadPdf } from '../lib/exportLeadPdf.js';
 
 const CARD_SHADOW = '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)';
 
@@ -162,6 +163,21 @@ export default function LeadDetail() {
     }
   }
 
+  function handleExportPdf() {
+    // TODO: replace mock data with real Supabase data when connected
+    const qualification = IS_MOCK
+      ? mock.getQualification(id)
+      : null; // qualification is currently loaded by QualificationPanel only; for Supabase, fetch from `lead_qualifications`
+    exportLeadPdf({
+      lead,
+      sections,
+      items,
+      leadItems,
+      qualification,
+      advisorName: lead.profiles?.full_name ?? profile?.full_name ?? null,
+    });
+  }
+
   // TODO: replace mock data with real events from Supabase
   // Table: lead_events (lead_id, type, description, created_at)
   // Triggered by Edge Functions on each client action
@@ -290,24 +306,45 @@ export default function LeadDetail() {
               ) : null}
             </div>
           </div>
-          {isAdmin && !locked && (
+          <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={markComplete}
-              className="transition-all"
+              onClick={handleExportPdf}
+              className="transition-all inline-flex items-center gap-1.5"
               style={{
                 background: 'white',
                 color: '#1D1D1F',
-                fontSize: '14px',
+                fontSize: '13px',
                 fontWeight: 500,
-                padding: '10px 20px',
+                padding: '8px 16px',
                 borderRadius: '980px',
                 border: '1px solid #E5E7EB',
                 transitionDuration: '150ms',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#F5F5F7')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
             >
-              Als vollständig markieren
+              <span aria-hidden style={{ fontSize: '14px', lineHeight: 1 }}>↓</span>
+              PDF exportieren
             </button>
-          )}
+            {isAdmin && !locked && (
+              <button
+                onClick={markComplete}
+                className="transition-all"
+                style={{
+                  background: 'white',
+                  color: '#1D1D1F',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  padding: '10px 20px',
+                  borderRadius: '980px',
+                  border: '1px solid #E5E7EB',
+                  transitionDuration: '150ms',
+                }}
+              >
+                Als vollständig markieren
+              </button>
+            )}
+          </div>
         </div>
 
         <div style={{ marginTop: '24px' }}>
