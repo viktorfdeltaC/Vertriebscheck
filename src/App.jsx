@@ -8,6 +8,7 @@ import LeadDetail from './pages/LeadDetail.jsx';
 import ClientCheck from './pages/ClientCheck.jsx';
 import AdminUsers from './pages/AdminUsers.jsx';
 import AdminRoute from './components/AdminRoute.jsx';
+import Offline from './pages/Offline.jsx';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/check/:share_uuid" element={<ClientCheck />} />
+        <Route path="/offline" element={<Offline />} />
         <Route
           path="/dashboard"
           element={<ProtectedRoute><Dashboard /></ProtectedRoute>}

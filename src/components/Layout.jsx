@@ -1,12 +1,20 @@
+import { useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth.jsx';
 import { IS_MOCK } from '../lib/supabase.js';
 import NotificationBanner from './NotificationBanner.jsx';
+import InstallBanner from './InstallBanner.jsx';
 import BellMenu from './BellMenu.jsx';
+import { registerAdvisorSW } from '../lib/pwa.js';
 
 export default function Layout({ children }) {
   const { profile, signOut, signIn } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Berater-Bereich registriert den Service Worker; der Kunden-View (/check/:uuid) nicht.
+    registerAdvisorSW();
+  }, []);
 
   async function handleLogout() {
     await signOut();
@@ -105,6 +113,7 @@ export default function Layout({ children }) {
         </div>
       </header>
       <NotificationBanner />
+      <InstallBanner />
       <main className="max-w-6xl mx-auto px-5 sm:px-6 py-10">{children}</main>
     </div>
   );
